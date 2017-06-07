@@ -2,6 +2,7 @@ from bs4 import BeautifulSoup
 import urllib.request
 import time
 import random
+import sys
 
 class TextCrawler:
     def __init__(self, gall_name, page_number):
@@ -11,7 +12,7 @@ class TextCrawler:
 
     def crawl(self):
         page = 1
-        text = ''
+        f = open('data.txt', 'w')
 
         while page <= self.page_number:
             url_open = urllib.request.urlopen(self.list_url + 
@@ -21,14 +22,14 @@ class TextCrawler:
             notice_list = soup.findAll('td', {'class':'t_notice'})
             subject_list = soup.findAll('td', {'class':'t_subject'})
 
-            for i in range(0, len(notice_list)):
+            for i in range(0, len(notice_list)):    # 공지사항 제거
                 if notice_list[0].text == '공지':
                     notice_list.pop(0)
                     subject_list.pop(0)
 
-            for subject in subject_list:
+            for subject in subject_list:    # 제목 저장
+                f.write(subject.text + '\n')
                 print(subject.text)
-                text += subject.text + '\n'
 
             random_number = random.randrange(1,5)
             print('%d page subject crawling complete. %d sec sleep...'\
@@ -44,8 +45,8 @@ class TextCrawler:
                 content = soup.find('div', {'class':'s_write'})
                 content = content.table.tr.td.text
 
+                f.write(content + '\n')     # 본문 저장
                 print(content)
-                text += content + '\n'
 
                 random_number = random.randrange(1,5)
                 print('%s content crawling complete. %d sec sleep...'\
@@ -54,4 +55,15 @@ class TextCrawler:
 
             page += 1
 
-        return text
+        f.close()
+
+if __name__ == '__main__':
+    if len(sys.argv) != 3:
+        print('python3 wordcloud.py [GALL_NAME] [PAGE_NUMBER]')
+        sys.exit()
+
+    gall_name = str(sys.argv[1])
+    page_number = int(sys.argv[2])
+    t = TextCrawler(gall_name, page_number)
+    t.crawl()
+    
